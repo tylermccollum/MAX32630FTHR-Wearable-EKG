@@ -48,10 +48,15 @@ void reg_cfg(){  //Configure registers
     Thread::wait(100);
     
     //if ((MXC_UART0->ctrl |= MXC_F_UART_CTRL_CTS_EN) != MXC_UART0->ctrl){
-        MXC_UART0->ctrl |= MXC_F_UART_CTRL_CTS_EN; //Enable Hardware Output flow control
+        
+        //Enable Hardware Output flow control
+        MXC_UART0->ctrl |= MXC_F_UART_CTRL_CTS_EN;
         MXC_UART0->ctrl |= MXC_F_UART_CTRL_CTS_POLARITY;
+        
+        //Attempts to use RTS causes runtime crash. Don't use.
         MXC_UART0->ctrl ^= MXC_F_UART_CTRL_RTS_EN; //Enable Hardware Input flow control (not enabled)
         MXC_UART0->ctrl ^= MXC_F_UART_CTRL_RTS_POLARITY;
+    
         MXC_IOMAN->uart0_req ^= MXC_F_IOMAN_UART0_REQ_IO_MAP; //Properly map RX & TX
         MXC_IOMAN->uart0_req |= MXC_F_IOMAN_UART0_REQ_CTS_MAP; //Properly map CTS
         MXC_IOMAN->uart0_req |= MXC_F_IOMAN_UART0_REQ_RTS_MAP; //Properly map RTS
@@ -71,6 +76,12 @@ void reg_cfg(){  //Configure registers
                
 }
 
+
+/*
+ * Attempt to load TI Service Pack for the PAN1326b(CC2564b) from SD card,
+ * loading from memory causes runtime error.
+ * This code currently doesn't work.
+ */
  
 void ServicePack(){
 
@@ -106,59 +117,32 @@ int main()
     
     reg_cfg();
     
-    //Config Interrupts
-    //RTS.rise(&flowControl);
-    //
-    
     rLed = 1;
     bLed = 1;
     gLed = 1;
     CTS = 1;
     
     dap.printf("Starting rest\r\n");
-    
-    //val = RTS.read();
-    //dap.printf("RTS = %d\r\n\r\n", val);
-    
-    
-    /*
-    for(int i = 0; i < 10; i++)
-    {
-        rLed = 1;
-        Thread::wait(500);
-        rLed = 0;
-        val = RTS.read();
-        dap.printf("RTS = %i\r\n", val);
-        Thread::wait(500); //Something to do/see
-        }
-        
-        dap.printf("\r\n");
-        rLed = 1;
-    */ //Test to see RTS value. RTS is low on proper initialization.
         
     //HCI Serial setup
     hci.baud(115200);
-    //hci.format(8,Serial::None,1);         //Explicitly define 8n1 serial
     //hci.set_flow_control(Serial::RTSCTS,P0_2,P0_3);   //Enable RTS,CTS flow control  <--- Flow control doesn't work: causes break
-    //^^ I did it mysyelf. See reg_cfg. RTS control only.
     //End setup
     
     bLed = 0;
     Thread::wait(250);
     bLed = 1;
     
+    
     //Test: Output Service Pack
-    
-    
+
     dap.printf("Sending Service Pack...\r\n");
     
+    //Currently doesn't work. Comment out to manually load service pack.
     ServicePack();
-    
     
     dap.printf("Service Pack uploaded\r\n");
     
-    //val = RTS.read();
-    //dap.printf("RTS = %d", val);
     
     
     /* Test: Transparent Mode
@@ -182,30 +166,4 @@ int main()
             dap.putc(hci.getc());
         }
     }
-    
-    
-    
-    
-    
-    /* Not Yet. Need service pack.
-    //Write
-    hci.putc(0x01); //Send command
-    hci.putc(0x09);//Command LSB, Read_BD_ADDR
-    hci.putc(0x10);
-    hci.putc(0x00);//Null parameter length
-    
-    
-    
-    //Read
-    CTS = 0;
-    for(int n = 0; n < 32; n++){ //if there's data
-        buff[n]=hci.getc();
-        }
-    
-    
-        
-    for(int i=0; i< sizeof(buff); i++){
-        dap.printf("buff[%i] = %c", i, buff[i]);
-        }
-    */
 } 
