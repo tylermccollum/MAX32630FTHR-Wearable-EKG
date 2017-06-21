@@ -1,1 +1,5 @@
 In progress attempt to implement bluetooth on MAX32630.
+
+service_pack.txt contains raw comment delimitted hex values for service pack including BLE.
+
+Folder contains scripts for use with TI's HCI Tester Tool or Bluetooth Hardware Evalutation Tool.
